@@ -1,0 +1,43 @@
+import random
+
+# List of tasks
+tasks = [
+    "badkamer A", "badkamer B", "fusie", "huisboodschappen", "aanrecht",
+    "WC A", "WC B", "keukenvloer", "kookpitten", "vuile was",
+    "gangen", "papier en glas", "ovens & balkon"
+]
+
+# Lists of people in two gangs
+gang_a = ["Maria", "Tim", "Samuel", "Jojanne", "Indrah", "Julian", "Linde"]
+gang_b = ["Joost", "Emma", "Steven", "Knut", "Milan", "Pepijn", "Tessa", "Jolieke"]
+
+# Calculate the number of free slots
+num_free_slots = min(len(gang_a), len(gang_b)) - len(tasks)
+
+# Initialize task assignments
+task_assignments = {task: [] for task in tasks}
+
+# Assign tasks randomly for the first week
+for task in tasks:
+    if task.endswith('A'):
+        assigned_person = random.choice(gang_a)
+    elif task.endswith('B'):
+        assigned_person = random.choice(gang_b)
+    else:
+        assigned_person = random.choice(gang_a + gang_b)
+    task_assignments[task].append(assigned_person)
+
+# Rotate assignments for the next 14 weeks
+for week in range(1, 15):
+    print(f"Week {week} Assignments:")
+    for task in tasks:
+        assigned_person = task_assignments[task][(week - 1) % len(task_assignments[task])]
+        print(f"{task}: {assigned_person}")
+    print()
+
+# Assign free slots fairly
+for week in range(1, 15):
+    print(f"Week {week} Free Slots:")
+    free_slots = random.sample(gang_a + gang_b, num_free_slots)
+    print(", ".join(free_slots))
+    print()

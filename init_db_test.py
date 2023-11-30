@@ -11,7 +11,7 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 
 # Create the 'users' table
-cur.execute('DROP TABLE IF EXISTS users;')
+cur.execute('DROP TABLE IF EXISTS users CASCADE;')
 
 cur.execute('''
     CREATE TABLE users (

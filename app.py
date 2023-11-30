@@ -87,6 +87,7 @@ def dashboard():
     if not user:
         return redirect(url_for('login'))
 
+    # probeersel
     schedule = {
         'Badkamer A': 'Linde',
         'Badkamer B': 'Tessa',
@@ -110,6 +111,58 @@ def dashboard():
     else:
         # Render regular user dashboard
         return render_template('dashboard.html', user=user, schedule=schedule)
+
+# NON WORKING ATTEMPT AT TRYING TO POPULATE THE TABLE FROM MY DATABASE
+# @app.route('/dashboard')
+# # @login_required
+# def dashboard():
+#     # Access user information from the session
+#     user = session.get('user')
+
+#     if not user:
+#         return redirect(url_for('login'))
+
+#     # Connect to the database
+#     conn = psycopg2.connect(
+#         host="localhost",
+#         database="huisrooster_db",
+#         user=os.environ['bollejoost'],
+#         password=os.environ['password']
+#     )
+
+#     cur = conn.cursor()
+
+#     # SQL query to retrieve schedule data with assigned user names
+#     cur.execute('''
+#         SELECT s.task, u.name
+#         FROM schedule s
+#         JOIN users u ON s.assigned_user_id = u.id;
+#     ''')
+
+#     # Fetch all rows from the result
+#     schedule_data = cur.fetchall()
+
+
+#     # Close the database connection
+#     cur.close()
+#     conn.close()
+
+#     # Create a dictionary from the fetched data
+#     schedule = {}
+#     for task, person in schedule_data:
+#         if task not in schedule:
+#             schedule[task] = []
+#         schedule[task].append(person)
+
+
+#     # Check if the user is an admin
+#     if user.get('admin', False):
+#         # Render admin dashboard
+#         return render_template('admin.html', user=user, schedule=schedule)
+#     else:
+#         # Render regular user dashboard
+#         return render_template('dashboard.html', user=user, schedule=schedule)
+
     
 
 if __name__ == '__main__':

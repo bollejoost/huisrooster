@@ -87,23 +87,24 @@ def dashboard():
     if not user:
         return redirect(url_for('login'))
 
-    # probeersel
-    schedule = {
-        'Badkamer A': 'Linde',
-        'Badkamer B': 'Tessa',
-        'Fusie': 'Jojanne',
-        'Huisboodschappen': 'Indrah',
-        'Aanrecht': 'Milan',
-        'WC A': 'Maria',
-        'WC B': 'Pepijn',
-        'Keukenvloer': 'Tim',
-        'Kookpitten & vuilnisbakken': 'Jolieke',
-        'Vuile was': 'Joost',
-        'Gangen': 'Steven',
-        'Papier en glas': 'Emma',
-        'Vrij': 'Knut, Samuel, Julian'
-    }
-    
+    # Connect to the database
+    conn = psycopg2.connect(
+        host="localhost",
+        database="huisrooster_db",
+        user=os.environ['bollejoost'],
+        password=os.environ['password']
+    )
+    cur = conn.cursor()
+
+    # Fetch the schedule data from the database
+    cur.execute("SELECT task, name FROM schedule JOIN users ON schedule.assigned_user_id = users.id")
+    schedule_data = cur.fetchall()
+
+    # Create a dictionary to store the schedule data
+    schedule = {task: name for task, name in schedule_data}
+
+    print("Schedule Dictionary:", schedule)
+
     # Check if the user is an admin
     if user.get('admin', False):
         # Render admin dashboard
@@ -112,58 +113,11 @@ def dashboard():
         # Render regular user dashboard
         return render_template('dashboard.html', user=user, schedule=schedule)
 
-# NON WORKING ATTEMPT AT TRYING TO POPULATE THE TABLE FROM MY DATABASE
-# @app.route('/dashboard')
-# # @login_required
-# def dashboard():
-#     # Access user information from the session
-#     user = session.get('user')
-
-#     if not user:
-#         return redirect(url_for('login'))
-
-#     # Connect to the database
-#     conn = psycopg2.connect(
-#         host="localhost",
-#         database="huisrooster_db",
-#         user=os.environ['bollejoost'],
-#         password=os.environ['password']
-#     )
-
-#     cur = conn.cursor()
-
-#     # SQL query to retrieve schedule data with assigned user names
-#     cur.execute('''
-#         SELECT s.task, u.name
-#         FROM schedule s
-#         JOIN users u ON s.assigned_user_id = u.id;
-#     ''')
-
-#     # Fetch all rows from the result
-#     schedule_data = cur.fetchall()
+    # Close the database connection
+    cur.close()
+    conn.close()
 
 
-#     # Close the database connection
-#     cur.close()
-#     conn.close()
-
-#     # Create a dictionary from the fetched data
-#     schedule = {}
-#     for task, person in schedule_data:
-#         if task not in schedule:
-#             schedule[task] = []
-#         schedule[task].append(person)
-
-
-#     # Check if the user is an admin
-#     if user.get('admin', False):
-#         # Render admin dashboard
-#         return render_template('admin.html', user=user, schedule=schedule)
-#     else:
-#         # Render regular user dashboard
-#         return render_template('dashboard.html', user=user, schedule=schedule)
-
-    
 
 if __name__ == '__main__':
     app.run(debug=True)

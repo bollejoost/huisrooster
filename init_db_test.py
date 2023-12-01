@@ -57,11 +57,11 @@ cur.execute('''
         assigned_user_id integer REFERENCES users(id)
     );
 
-    INSERT INTO schedule (task) VALUES
-    ('Badkamer A'), ('Badkamer B'), ('Fusie'), ('Huisboodschappen'),
-    ('Aanrecht'), ('WC A'), ('WC B'), ('Keukenvloer'),
-    ('Kookpitten & vuilnisbakken'), ('Vuile was'), ('Gangen'),
-    ('Papier en glas'), ('Ovens & balkon'), ('Vrij'), ('Vrij');
+    INSERT INTO schedule (task, assigned_user_id) VALUES
+    ('Badkamer A', 1), ('Badkamer B', 2), ('Fusie', 3), ('Huisboodschappen', 4),
+    ('Aanrecht', 5), ('WC A', 6), ('WC B', 7), ('Keukenvloer', 8),
+    ('Kookpitten & vuilnisbakken', 9), ('Vuile was', 10), ('Gangen', 11),
+    ('Papier en glas', 12), ('Ovens & balkon', 13), ('Vrij', 14), ('Vrij', 15);
 ''')
 
 # Commit the changes and close the connection

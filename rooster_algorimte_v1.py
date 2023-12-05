@@ -50,3 +50,9 @@ for week in range(1, 16):
 print("\nFinal Schedule:")
 for person, assignments in schedule.items():
     print(f"{person}: {assignments}")
+
+"""
+maak persoon Class
+- met lijst van taken die gedaan zijn
+- 
+"""

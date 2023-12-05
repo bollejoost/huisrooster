@@ -24,11 +24,10 @@
         <tbody>
             {% for task, person in schedule.items() %}
                 <tr>
-                    <td>{{ task }}</td>
-                    <td>{{ person }}</td>
+                    <td>{% if person == user.name %}<strong>{{ task }}</strong>{% else %}{{ task }}{% endif %}</td>
+                    <td>{% if person == user.name %}<strong>{{ person }}</strong>{% else %}{{ person }}{% endif %}</td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-    
 {% endblock %}

@@ -29,8 +29,8 @@ def authenticate(name, password):
     conn = psycopg2.connect(
         host="localhost",
         database="huisrooster_db",
-        user=os.environ['bollejoost'],
-        password=os.environ['password']
+        user="bollejoost",
+        password="password"
     )
 
     cur = conn.cursor()
@@ -56,17 +56,17 @@ def login():
 
         if user:
             # Successful login
-            user_data = {'name': user[1], 'gang': user[3], 'admin': user[4], 'boete': user[5]}  # Adjust indices based on your actual user table structure
+            user_data = {'name': user[1], 'gang': user[3], 'admin': user[4], 'boete': user[5]}
             session['user'] = user_data
-            print("User data:", user_data)  # Add this line for debugging
-            return redirect(url_for('dashboard'))  # Redirect to the dashboard route
+            print("User data:", user_data) # debugging
+            return redirect(url_for('dashboard'))  # go to dashboard
         else:
             # Failed login
             error_message = 'Invalid name or password'
             print("Login failed:", error_message)  # Add this line for debugging
             return render_template('login.html', error_message=error_message)
 
-    # If the request method is GET, simply render the login template
+    # render login for GET request
     return render_template('login.html')
 
 
@@ -79,8 +79,12 @@ def logout():
 
 
 @app.route('/dashboard')
-# @login_required
+@login_required
 def dashboard():
+    print("Dashboard route reached")  # For debugging
+    print("User data:", user)  # For debugging
+    print("Schedule data:", schedule)  # For debugging
+
     # Access user information from the session
     user = session['user']
 
@@ -91,8 +95,8 @@ def dashboard():
     conn = psycopg2.connect(
         host="localhost",
         database="huisrooster_db",
-        user=os.environ['bollejoost'],
-        password=os.environ['password']
+        user="bollejoost",
+        password="password"
     )
     cur = conn.cursor()
 
@@ -102,8 +106,6 @@ def dashboard():
 
     # Create a dictionary to store the schedule data
     schedule = {task: name for task, name in schedule_data}
-
-    print("Schedule Dictionary:", schedule)
 
     # Check if the user is an admin
     if user.get('admin', False):

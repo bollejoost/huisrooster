@@ -1,61 +1,49 @@
 import random
+import psycopg2
 
-def create_schedule(names, tasks, conn, cur):
-    # Create an empty schedule dictionary
-    schedule = {}
+def create_schedule(names, tasks, db_connection):
+    conn = psycopg2.connect(**db_connection)
+    cur = conn.cursor()
 
-    # Insert tasks into the schedule for the first week
-    for task in tasks:
-        schedule[task] = names.pop(0)
+    try:
+        # Get the user IDs
+        cur.execute("SELECT id FROM users WHERE name IN %s;", (tuple(names),))
+        user_ids = [row[0] for row in cur.fetchall()]
 
-    # Insert the first week into the database
-    for task, name in schedule.items():
-        cur.execute("INSERT INTO schedule (week_id, task, assigned_user_id) VALUES (1, %s, (SELECT id FROM users WHERE name = %s));", (task, name))
+        for week in range(1, 16):
+            # Shuffle names for the current week
+            random.shuffle(user_ids)
 
-    # Commit the changes for the first week
-    conn.commit()
+            # Insert schedules for the current week
+            for task, user_id in zip(tasks, user_ids):
+                cur.execute('''
+                    INSERT INTO schedule (week_id, task, assigned_user_id)
+                    VALUES (%s, %s, %s);
+                ''', (week, task, user_id))
 
-    # Rotate names for the next 14 weeks
-    for week in range(2, 16):
-        # Rotate the names
-        names.append(names.pop(0))
+            conn.commit()
 
-        # Clear the schedule dictionary
-        schedule.clear()
+    except Exception as e:
+        print("Error:", e)
 
-        # Insert tasks for the current week
-        for task in tasks:
-            schedule[task] = names[0]
-
-        # Insert the current week into the database
-        for task, name in schedule.items():
-            cur.execute("INSERT INTO schedule (week_id, task, assigned_user_id) VALUES (%s, %s, (SELECT id FROM users WHERE name = %s));", (week, task, name))
-
-        # Commit the changes for the current week
-        conn.commit()
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
 
 if __name__ == "__main__":
-    # Test data
     names = ["Maria", "Tim", "Samuel", "Jojanne", "Indrah", "Julian", "Linde",
              "Joost", "Emma", "Steven", "Knut", "Milan", "Pepijn", "Tessa", "Jolieke"]
 
-    tasks = ["Badkamer A", "Badkamer B", "Fusie", "Huisboodschappen", "Aanrecht",
-             "WC A", "WC B", "Keukenvloer", "Kookpitten & vuilnisbakken", "Vuile was",
-             "Gangen", "Papier en glas", "Ovens & balkon", "Vrij", "Vrij"]
+    tasks = ["badkamer A", "badkamer B", "fusie", "huisboodschappen", "aanrecht",
+             "WC A", "WC B", "keukenvloer", "kookpitten", "vuile was",
+             "gangen", "papier en glas", "ovens & balkon", "vrij", "vrij"]
 
-    # Connect to the database
-    conn = psycopg2.connect(
-        host="localhost",
-        database="huisrooster_db",
-        user="bollejoost",
-        password="password"
-    )
+    db_connection = {
+        'host': "localhost",
+        'database': "huisrooster_db",
+        'user': "bollejoost",
+        'password': "password"
+    }
 
-    cur = conn.cursor()
-
-    # Call the create_schedule function
-    create_schedule(names.copy(), tasks, conn, cur)
-
-    # Close the cursor and connection
-    cur.close()
-    conn.close()
+    create_schedule(names, tasks, db_connection)

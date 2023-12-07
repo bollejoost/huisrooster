@@ -80,9 +80,10 @@ if __name__ == "__main__":
     names = ["Maria", "Tim", "Samuel", "Jojanne", "Indrah", "Julian", "Linde",
              "Joost", "Emma", "Steven", "Knut", "Milan", "Pepijn", "Tessa", "Jolieke"]
 
-    tasks = ["badkamer A", "badkamer B", "fusie", "huisboodschappen", "aanrecht",
-             "WC A", "WC B", "keukenvloer", "kookpitten", "vuile was",
-             "gangen", "papier en glas", "ovens & balkon", "vrij", "vrij"]
+    tasks = ["Badkamer A", "Badkamer B", "Fusie", "Huisboodschappen", "Aanrecht",
+            	"WC A", "WC B", "Keukenvloer", "Kookpitten", "Vuile was",
+                "Gangen", "Papier en glas", "Ovens & balkon", "Vrij 1", "Vrij 2"]
+
 
     db_connection = {
         'host': "localhost",

@@ -12,7 +12,17 @@
     <p>Jij hoort in gang: {{ user.gang }}</p>
     <p>Je hebt momenteel een boete van {{ user.boete }}€</p>
 
-    <h3>Rooster week 48 - Deadline Woensdag 29/11 om 23:59</h3>
+    <form action="{{ url_for('dashboard') }}" method="post">
+        <label for="week">Select Week:</label>
+        <select name="week" id="week">
+            {% for week in weeks %}
+                <option value="{{ week }}" {% if week == selected_week %}selected{% endif %}>{{ week }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="View Schedule">
+    </form>
+
+    <h3>Rooster week {{ selected_week }} - Deadline Woensdag 29/11 om 23:59</h3>
 
     <table>
         <thead>

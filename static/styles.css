@@ -1,8 +1,8 @@
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
-    margin: 0;
+    background-color: #f77575;
+    color: #000000;
+    margin: 20px;
     padding: 0;
 }
 
@@ -12,7 +12,7 @@ body {
 }
 
 h2 {
-    color: #009688;
+    color: #000000;
 }
 
 /* Reset default table styles */
@@ -25,7 +25,7 @@ table {
 
 /* Table header styles */
 th {
-    background-color: #009688;
+    background-color: #960046;
     color: #fff;
     padding: 12px;
     text-align: left;
@@ -34,12 +34,12 @@ th {
 /* Table row styles */
 td {
     padding: 12px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #fbdcdc;
 }
 
 /* Alternating row background colors */
 tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: #edbfbf;
 }
 
 /* Hover effect for rows */

@@ -78,15 +78,11 @@ def logout():
     return redirect('/login')
 
 
-@app.route('/dashboard')
-@login_required
+@app.route('/dashboard', methods=['GET', 'POST'])
+# @login_required
 def dashboard():
-    print("Dashboard route reached")  # For debugging
-    print("User data:", user)  # For debugging
-    print("Schedule data:", schedule)  # For debugging
-
     # Access user information from the session
-    user = session['user']
+    user = session.get('user')
 
     if not user:
         return redirect(url_for('login'))
@@ -100,24 +96,31 @@ def dashboard():
     )
     cur = conn.cursor()
 
-    # Fetch the schedule data from the database
-    cur.execute("SELECT task, name FROM schedule JOIN users ON schedule.assigned_user_id = users.id")
+    # Fetch the distinct weeks from the schedule
+    cur.execute("SELECT DISTINCT week_id FROM schedule")
+    weeks_data = cur.fetchall()
+    weeks = sorted([week[0] for week in weeks_data])
+
+    # Get the selected week from the form data
+    selected_week = request.form.get('week')
+
+    # Default to the first week if not selected
+    if not selected_week:
+        selected_week = weeks[0]
+
+    # Fetch the schedule data for the selected week
+    cur.execute("SELECT task, name FROM schedule JOIN users ON schedule.assigned_user_id = users.id WHERE week_id = %s", (selected_week,))
     schedule_data = cur.fetchall()
 
     # Create a dictionary to store the schedule data
     schedule = {task: name for task, name in schedule_data}
 
-    # Check if the user is an admin
-    if user.get('admin', False):
-        # Render admin dashboard
-        return render_template('admin.html', user=user, schedule=schedule)
-    else:
-        # Render regular user dashboard
-        return render_template('dashboard.html', user=user, schedule=schedule)
-
     # Close the database connection
     cur.close()
     conn.close()
+
+    # Render regular user dashboard with the updated schedule and weeks
+    return render_template('dashboard.html', user=user, schedule=schedule, weeks=weeks, selected_week=selected_week)
 
 
 

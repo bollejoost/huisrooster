@@ -79,7 +79,6 @@ def logout():
 
 
 @app.route('/dashboard', methods=['GET', 'POST'])
-# @login_required
 def dashboard():
     # Access user information from the session
     user = session.get('user')
@@ -112,8 +111,15 @@ def dashboard():
     cur.execute("SELECT task, name FROM schedule JOIN users ON schedule.assigned_user_id = users.id WHERE week_id = %s", (selected_week,))
     schedule_data = cur.fetchall()
 
+    # sort tasks
+    tasks = ["Badkamer A", "Badkamer B", "Fusie", "Huisboodschappen", "Aanrecht",
+             "WC A", "WC B", "Keukenvloer", "Kookpitten", "Vuile was",
+             "Gangen", "Papier en glas", "Ovens & balkon", "Vrij 1", "Vrij 2"]
+
+    sorted_schedule_data = sorted(schedule_data, key=lambda x: tasks.index(x[0]))
+
     # Create a dictionary to store the schedule data
-    schedule = {task: name for task, name in schedule_data}
+    schedule = {task: name for task, name in sorted_schedule_data}
 
     # Close the database connection
     cur.close()

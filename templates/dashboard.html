@@ -29,13 +29,35 @@
             <tr>
                 <th>Task</th>
                 <th>Assigned Person</th>
+                <th>Task done</th>
             </tr>
         </thead>
         <tbody>
-            {% for task, person in schedule.items() %}
+            {% for task, details in schedule.items() %}
                 <tr>
-                    <td>{% if person == user.name %}<strong>{{ task }}</strong>{% else %}{{ task }}{% endif %}</td>
-                    <td>{% if person == user.name %}<strong>{{ person }}</strong>{% else %}{{ person }}{% endif %}</td>
+                    <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %}>
+                        {% if details.person == user.name %}
+                            {{ task }}
+                            {% if details.is_done %}
+                            {% else %}
+                                <form action="{{ url_for('confirm_task', task=task, week=selected_week) }}" method="post">
+                                    <button type="submit">Confirm Task</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            {{ task }}
+                        {% endif %}
+                    </td>
+                    <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %}>
+                        {% if details.person == user.name %}<strong>{{ details.person }}</strong>{% else %}{{ details.person }}{% endif %}
+                    </td>
+                    <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %}>
+                        {% if details.is_done %}
+                            Yes
+                        {% else %}
+                            No
+                        {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>

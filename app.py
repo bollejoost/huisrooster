@@ -107,8 +107,13 @@ def dashboard():
     if not selected_week:
         selected_week = weeks[0]
 
-    # Fetch the schedule data for the selected week
-    cur.execute("SELECT task, name FROM schedule JOIN users ON schedule.assigned_user_id = users.id WHERE week_id = %s", (selected_week,))
+    # Fetch the schedule data for the selected week, including the 'is_done' column
+    cur.execute("""
+        SELECT schedule.task, users.name, schedule.is_done
+        FROM schedule
+        JOIN users ON schedule.assigned_user_id = users.id
+        WHERE week_id = %s
+    """, (selected_week,))
     schedule_data = cur.fetchall()
 
     # sort tasks
@@ -118,16 +123,48 @@ def dashboard():
 
     sorted_schedule_data = sorted(schedule_data, key=lambda x: tasks.index(x[0]))
 
-    # Create a dictionary to store the schedule data
-    schedule = {task: name for task, name in sorted_schedule_data}
+    # Create a list of dictionaries to store the schedule data
+    # Modify the schedule assignment in the 'dashboard' route
+    schedule = {task: {'person': person, 'is_done': is_done} for task, person, is_done in sorted_schedule_data}
 
     # Close the database connection
     cur.close()
     conn.close()
 
-    # Render regular user dashboard with the updated schedule and weeks
+    # Pass 'schedule' as a dictionary in the render_template function
     return render_template('dashboard.html', user=user, schedule=schedule, weeks=weeks, selected_week=selected_week)
 
+@app.route('/confirm_task/<task>/<week>', methods=['POST'])
+def confirm_task(task, week):
+    # Access user information from the session
+    user = session.get('user')
+
+    # Connect to the database
+    conn = psycopg2.connect(
+        host="localhost",
+        database="huisrooster_db",
+        user="bollejoost",
+        password="password"
+    )
+    cur = conn.cursor()
+
+    try:
+        # Update the 'is_done' field for the specified task and week
+        cur.execute("UPDATE schedule SET is_done = TRUE WHERE task = %s AND week_id = %s AND assigned_user_id = (SELECT id FROM users WHERE name = %s)", (task, week, user['name']))
+
+        # Commit the changes
+        conn.commit()
+
+    except Exception as e:
+        print("Error:", e)
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+    # Redirect back to the dashboard
+    return redirect(url_for('dashboard'))
 
 
 if __name__ == '__main__':

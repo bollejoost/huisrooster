@@ -1,5 +1,8 @@
 body {
     font-family: 'Arial', sans-serif;
+    background-image: url('/static/background1.png'); /* Replace with the actual path to your PNG image */
+    background-size: cover;
+    background-position: center;
     background-color: #f77575;
     color: #000000;
     margin: 20px;

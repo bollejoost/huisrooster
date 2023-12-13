@@ -14,7 +14,7 @@
     <div class="rounded-container">
         <div style="text-align: right;">
             <form action="{{ url_for('logout') }}" method="post">
-                <input type="submit" value="Logout">
+                <input type="submit" value="Logout" class="custom-button">
             </form>
         </div>
         <div style="padding-left: 20px;">
@@ -24,12 +24,12 @@
         
             <form action="{{ url_for('dashboard') }}" method="post">
                 <label for="week" class="text-outline">Select Week:</label>
-                <select name="week" id="week">
+                <select name="week" id="week" class="custom-button">
                     {% for week in weeks %}
                         <option value="{{ week }}" {% if week == selected_week %}selected{% endif %}>{{ week }}</option>
                     {% endfor %}
                 </select>
-                <input type="submit" value="View Schedule" class="text-outline">
+                <input type="submit" value="Zie rooster" class="custom-button">
             </form>
         
             {% set deadline_date = deadline_dates[selected_week] %}
@@ -40,9 +40,9 @@
         <table>
             <thead>
                 <tr>
-                    <th class="text-outline">Task</th>
-                    <th class="text-outline">Assigned Person</th>
-                    <th class="text-outline">Task done</th>
+                    <th class="text-outline">Taak</th>
+                    <th class="text-outline">Aangewezen persoon</th>
+                    <th class="text-outline">Taak gedaan</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,7 +54,7 @@
                                 {% if details.is_done %}
                                 {% else %}
                                     <form action="{{ url_for('confirm_task', task=task, week=selected_week) }}" method="post">
-                                        <button type="submit" class="text-outline">Confirm Task</button>
+                                        <button type="submit" class="custom-button">Bevestig taak</button>
                                     </form>
                                 {% endif %}
                             {% else %}
@@ -66,9 +66,9 @@
                         </td>
                         <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %} class="text-outline">
                             {% if details.is_done %}
-                                Yes
+                                Ja
                             {% else %}
-                                No
+                                Nee
                             {% endif %}
                         </td>
                     </tr>

@@ -3,6 +3,7 @@ import os
 import psycopg2
 from sqlalchemy.exc import IntegrityError 
 import time
+from datetime import datetime, timedelta
 from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_session import Session
@@ -107,6 +108,12 @@ def dashboard():
     if not selected_week:
         selected_week = weeks[0]
 
+    # Set the initial date to January 3rd
+    initial_date = datetime(datetime.now().year, 1, 3)
+
+    # Calculate the week start date based on the selected week
+    week_start_date = initial_date + timedelta(weeks=int(selected_week) - 1)
+
     # Fetch the schedule data for the selected week, including the 'is_done' column
     cur.execute("""
         SELECT schedule.task, users.name, schedule.is_done
@@ -127,12 +134,17 @@ def dashboard():
     # Modify the schedule assignment in the 'dashboard' route
     schedule = {task: {'person': person, 'is_done': is_done} for task, person, is_done in sorted_schedule_data}
 
+    # Calculate deadline dates for each week
+    deadline_dates = [(week_start_date + timedelta(days=2, hours=23, minutes=59)).strftime("%d/%m") for week_start_date in
+                      [initial_date + timedelta(weeks=int(week) - 1) for week in weeks]]
+
     # Close the database connection
     cur.close()
     conn.close()
 
-    # Pass 'schedule' as a dictionary in the render_template function
-    return render_template('dashboard.html', user=user, schedule=schedule, weeks=weeks, selected_week=selected_week)
+    # Pass 'schedule', 'deadline_dates', 'weeks', 'selected_week', and 'week_start_date' to the template
+    return render_template('dashboard.html', user=user, schedule=schedule, weeks=weeks, selected_week=selected_week, deadline_dates=deadline_dates, week_start_date=week_start_date)
+
 
 @app.route('/confirm_task/<task>/<week>', methods=['POST'])
 def confirm_task(task, week):

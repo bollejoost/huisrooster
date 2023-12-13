@@ -3,9 +3,16 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+    <style>
+        .rounded-container {
+            background-color: #fa90c7;
+            border-radius: 15px;
+            padding: 20px;  /* Add padding for better appearance */
+        }
+    </style>
 
-    <div style="background-color: #fa90c7; border-radius: 15px;">
-        <div style="text-align: right; padding-top:20px; padding-right:20px">
+    <div class="rounded-container">
+        <div style="text-align: right;">
             <form action="{{ url_for('logout') }}" method="post">
                 <input type="submit" value="Logout">
             </form>
@@ -25,7 +32,8 @@
                 <input type="submit" value="View Schedule" class="text-outline">
             </form>
         
-            <h3 class="text-outline">Rooster week {{ selected_week }} - Deadline Woensdag 29/11 om 23:59</h3>
+            {% set deadline_date = deadline_dates[selected_week] %}
+            <h3 class="text-outline">Rooster week {{ selected_week }} - Deadline Woensdag {{ week_start_date.strftime('%d/%m') }} om 23:59</h3>
         </div>
         
 

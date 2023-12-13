@@ -3,63 +3,69 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-    <div style="text-align: right;">
-        <form action="{{ url_for('logout') }}" method="post">
-            <input type="submit" value="Logout">
-        </form>
-    </div>
-    <h2>Welkom, {{ user.name }}!</h2>
-    <p>Jij hoort in gang: {{ user.gang }}</p>
-    <p>Je hebt momenteel een boete van {{ user.boete }}€</p>
 
-    <form action="{{ url_for('dashboard') }}" method="post">
-        <label for="week">Select Week:</label>
-        <select name="week" id="week">
-            {% for week in weeks %}
-                <option value="{{ week }}" {% if week == selected_week %}selected{% endif %}>{{ week }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="View Schedule">
-    </form>
+    <div style="background-color: #fa90c7; border-radius: 15px;">
+        <div style="text-align: right; padding-top:20px; padding-right:20px">
+            <form action="{{ url_for('logout') }}" method="post">
+                <input type="submit" value="Logout">
+            </form>
+        </div>
+        <div style="padding-left: 20px;">
+            <h2 class="text-outline">Welkom, {{ user.name }}!</h2>
+            <p class="text-outline">Jij hoort in gang: {{ user.gang }}</p>
+            <p class="text-outline">Je hebt momenteel een boete van {{ user.boete }}€</p>
+        
+            <form action="{{ url_for('dashboard') }}" method="post">
+                <label for="week" class="text-outline">Select Week:</label>
+                <select name="week" id="week">
+                    {% for week in weeks %}
+                        <option value="{{ week }}" {% if week == selected_week %}selected{% endif %}>{{ week }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" value="View Schedule" class="text-outline">
+            </form>
+        
+            <h3 class="text-outline">Rooster week {{ selected_week }} - Deadline Woensdag 29/11 om 23:59</h3>
+        </div>
+        
 
-    <h3>Rooster week {{ selected_week }} - Deadline Woensdag 29/11 om 23:59</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Task</th>
-                <th>Assigned Person</th>
-                <th>Task done</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for task, details in schedule.items() %}
+        <table>
+            <thead>
                 <tr>
-                    <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %}>
-                        {% if details.person == user.name %}
-                            {{ task }}
-                            {% if details.is_done %}
-                            {% else %}
-                                <form action="{{ url_for('confirm_task', task=task, week=selected_week) }}" method="post">
-                                    <button type="submit">Confirm Task</button>
-                                </form>
-                            {% endif %}
-                        {% else %}
-                            {{ task }}
-                        {% endif %}
-                    </td>
-                    <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %}>
-                        {% if details.person == user.name %}<strong>{{ details.person }}</strong>{% else %}{{ details.person }}{% endif %}
-                    </td>
-                    <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %}>
-                        {% if details.is_done %}
-                            Yes
-                        {% else %}
-                            No
-                        {% endif %}
-                    </td>
+                    <th class="text-outline">Task</th>
+                    <th class="text-outline">Assigned Person</th>
+                    <th class="text-outline">Task done</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {% for task, details in schedule.items() %}
+                    <tr>
+                        <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %} class="text-outline">
+                            {% if details.person == user.name %}
+                                {{ task }}
+                                {% if details.is_done %}
+                                {% else %}
+                                    <form action="{{ url_for('confirm_task', task=task, week=selected_week) }}" method="post">
+                                        <button type="submit" class="text-outline">Confirm Task</button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                {{ task }}
+                            {% endif %}
+                        </td>
+                        <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %} class="text-outline">
+                            {% if details.person == user.name %}<strong>{{ details.person }}</strong>{% else %}{{ details.person }}{% endif %}
+                        </td>
+                        <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %} class="text-outline">
+                            {% if details.is_done %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

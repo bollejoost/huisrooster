@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 import time
 from datetime import datetime, timedelta
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -91,6 +91,10 @@ def dashboard():
 
     if not user:
         return redirect(url_for('login'))
+    
+    user_task = user.get('task')
+
+    print(f"{user_task}")
 
     # Connect to the database
     conn = psycopg2.connect(
@@ -173,8 +177,12 @@ def admin_dashboard():
     weeks_data = cur.fetchall()
     weeks = sorted([week[0] for week in weeks_data])
 
+    print(f"{weeks_data}")
+
     # Get the selected week from the form data
     selected_week = request.form.get('week')
+
+    print(f"{selected_week}")
 
     # Default to the first week if not selected
     if not selected_week:
@@ -224,20 +232,26 @@ def admin_dashboard():
         # Get the user IDs for the selected users
         cur.execute("SELECT id FROM users WHERE name = %s OR name = %s", (user1, user2))
         user_ids = cur.fetchall()
-        user1_id, user2_id = user_ids[0][0], user_ids[1][0]
 
-        # Switch assigned users in the database for the selected week
-        cur.execute("""
-            UPDATE schedule
-            SET assigned_user_id = CASE
-                WHEN assigned_user_id = %s THEN %s
-                WHEN assigned_user_id = %s THEN %s
-                ELSE assigned_user_id
-            END
-            WHERE week_id = %s
-        """, (user1_id, user2_id, user2_id, user1_id, selected_week))
+        # Check if user_ids is not empty before accessing its elements
+        if user_ids:
+            user1_id, user2_id = user_ids[0][0], user_ids[1][0]
 
-        conn.commit()
+            # Switch assigned users in the database for the selected week
+            cur.execute("""
+                UPDATE schedule
+                SET assigned_user_id = CASE
+                    WHEN assigned_user_id = %s THEN %s
+                    WHEN assigned_user_id = %s THEN %s
+                    ELSE assigned_user_id
+                END
+                WHERE week_id = %s
+            """, (user1_id, user2_id, user2_id, user1_id, selected_week))
+
+            conn.commit()
+        else:
+            # Handle the case where user_ids is empty, print a message or take appropriate action
+            print("User IDs not found for the selected users.")
 
 
     # Close the database connection
@@ -276,7 +290,133 @@ def confirm_task(task, week):
         conn.close()
 
     # Redirect back to the dashboard
-    return redirect(url_for('dashboard'))   
+    if user.get('admin'):
+        return redirect(url_for('admin_dashboard'))
+    else:
+        return redirect(url_for('dashboard'))  
+    
+
+@app.route('/add_boetes', methods=['POST'])
+def add_boetes():
+    # Access user information from the session
+    user = session.get('user')
+
+    # Connect to the database
+    conn = psycopg2.connect(
+        host="localhost",
+        database="huisrooster_db",
+        user="bollejoost",
+        password="password"
+    )
+    cur = conn.cursor()
+
+    try:
+        # Get the selected week for boetes
+        selected_week_boetes = request.form.get('week_boetes')
+
+        # Fetch users with is_done set to false for the selected week
+        cur.execute("""
+            SELECT users.id, users.boete
+            FROM users
+            JOIN schedule ON users.id = schedule.assigned_user_id
+            WHERE schedule.week_id = %s AND schedule.is_done = FALSE
+        """, (selected_week_boetes,))
+        users_boetes_data = cur.fetchall()
+
+        # Update boetes for each user
+        for user_boetes in users_boetes_data:
+            user_id, current_boete = user_boetes
+            new_boete = current_boete + 5
+
+            # Update the boete field for the user
+            cur.execute("UPDATE users SET boete = %s WHERE id = %s", (new_boete, user_id))
+            conn.commit()
+
+        flash("Boetes successfully added.")
+    except Exception as e:
+        print("Error:", e)
+        flash("Failed to add boetes.")
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+    # Redirect back to the admin_dashboard
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/clear_individual_boete', methods=['POST'])
+def clear_individual_boete():
+    # Access user information from the session
+    user = session.get('user')
+
+    # Connect to the database
+    conn = psycopg2.connect(
+        host="localhost",
+        database="huisrooster_db",
+        user="bollejoost",
+        password="password"
+    )
+    cur = conn.cursor()
+
+    try:
+        # Get the selected user for clearing boete
+        selected_user_boete = request.form.get('user_boetes')
+
+        # Fetch user's ID
+        cur.execute("SELECT id FROM users WHERE name = %s", (selected_user_boete,))
+        user_id = cur.fetchone()[0]
+
+        # Set the boete field for the user to 0
+        cur.execute("UPDATE users SET boete = 0 WHERE id = %s", (user_id,))
+        conn.commit()
+
+        flash(f"Boete voor {selected_user_boete} is betaald.")
+    except Exception as e:
+        print("Error:", e)
+        flash("Failed to clear individual boete.")
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+    # Redirect back to the admin_dashboard
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/clear_all_boetes', methods=['POST'])
+def clear_all_boetes():
+    # Access user information from the session
+    user = session.get('user')
+
+    # Connect to the database
+    conn = psycopg2.connect(
+        host="localhost",
+        database="huisrooster_db",
+        user="bollejoost",
+        password="password"
+    )
+    cur = conn.cursor()
+
+    try:
+        # Set boetes for all users to 0
+        cur.execute("UPDATE users SET boete = 0")
+        conn.commit()
+
+        flash("Alle boetes zijn betaald.")
+    except Exception as e:
+        print("Error:", e)
+        flash("Failed to clear all boetes.")
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+    # Redirect back to the admin_dashboard
+    return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
     app.run(debug=True)

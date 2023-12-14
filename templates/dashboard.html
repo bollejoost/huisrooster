@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
     <style>
@@ -8,6 +8,9 @@
             background-color: #fa90c7;
             border-radius: 15px;
             padding: 20px;  /* Add padding for better appearance */
+        }
+        pre {
+            font-family: monospace;
         }
     </style>
 
@@ -22,20 +25,25 @@
             <p class="text-outline">Jij hoort in gang: {{ user.gang }}</p>
             <p class="text-outline">Je hebt momenteel een boete van {{ user.boete }}€</p>
         
-            <form action="{{ url_for('admin_dashboard') }}" method="post">
+            <form action="{{ url_for('dashboard') }}" method="post">
                 <label for="week" class="text-outline">Select Week:</label>
                 <select name="week" id="week" class="custom-button">
-                    {% for week in weeks %}
-                        <option value="{{ week }}" {% if week == selected_week %}selected{% endif %}>{{ week }}</option>
-                    {% endfor %}
+                    {% if weeks %}
+                        {% for week in weeks %}
+                            <option value="{{ week }}" {% if week == selected_week %}selected{% endif %}>{{ week }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" disabled>No weeks available</option>
+                    {% endif %}
                 </select>
                 <input type="submit" value="Zie rooster" class="custom-button">
             </form>
         
             {% set deadline_date = deadline_dates[selected_week] %}
-            <h3 class="text-outline">Rooster week {{ selected_week }} - Deadline Woensdag {{ week_start_date.strftime('%d/%m') }} om 23:59</h3>
+            <h3 class="text-outline" id="deadline-date">Rooster week {{ selected_week }} - Deadline Woensdag {{ week_start_date.strftime('%d/%m') }} om 23:59</h3>
         </div>
         
+        <button onclick="copyToClipboard()" class="custom-button">Copy Schedule to Clipboard</button>
 
         <table>
             <thead>
@@ -45,7 +53,7 @@
                     <th class="text-outline">Taak gedaan</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="schedule-table-body">
                 {% for task, details in schedule.items() %}
                     <tr>
                         <td {% if details.person == user.name %}style="font-weight: bold;"{% endif %} class="text-outline">
@@ -76,4 +84,64 @@
             </tbody>
         </table>
     </div>
+    <script>
+        function copyToClipboard() {
+            var tableBody = document.getElementById('schedule-table-body');
+            var selectedWeek = document.getElementById('week').value;
+            var deadlineDateElement = document.getElementById('deadline-date');
+            var header = getHeader(selectedWeek, deadlineDateElement.textContent);
+    
+            var textarea = document.createElement('textarea');
+            textarea.value = header + '\n' + generateClipboardText(tableBody);
+
+            // Wrap the text inside a <pre> tag
+            var preElement = document.createElement('pre');
+            preElement.appendChild(document.createTextNode(textarea.value));
+    
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); /* For mobile devices */
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert('Schedule copied to clipboard!');
+        }
+    
+        function generateClipboardText(tableBody) {
+            var text = '';
+
+            // Use a fixed width for both columns
+            var taskWidth = 40;
+            var personWidth = 20;
+
+            for (var i = 0; i < tableBody.rows.length; i++) {
+                var cells = tableBody.rows[i].cells;
+
+                // Check if the row contains a button (assuming the button is in the last cell)
+                var hasButton = cells.length > 2 && cells[2].querySelector('button') !== null;
+
+                // Skip rows with buttons
+                if (hasButton) {
+                    continue;
+                }
+
+                // Extract the task and assigned person content
+                var taskContent = cells[0].innerText.trim();
+                var assignedPersonContent = cells[1].innerText.trim();
+
+                // Pad both columns with spaces to fixed widths
+                var formattedTask = taskContent.padEnd(taskWidth, ' ');
+                var formattedPerson = assignedPersonContent.padEnd(personWidth, ' ');
+
+                text += formattedTask + formattedPerson + '\n';
+            }
+
+            return text;
+        }
+
+
+        function getHeader(selectedWeek, deadlineDate) {
+            var header = '*' + deadlineDate + '*';
+            return header;
+        }
+    </script>        
 {% endblock %}
